@@ -1,10 +1,9 @@
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 /** @author  Michael Cotterell
  *  @version 1.0
- *  @date    Sun Oct  9 21:24:35 EDT 2011
  *  @see     LICENSE (MIT style license file).
- *  @compile scalac -cp ../../classes -d classes Optimize.scala
- *  @run     scala -cp ../../classes:classes process.OptimizeTest
+ *  @compile scalac -cp ../../scalation/classes -d ../../classes SimOptDSL.scala
+ *  @run     scala -cp ../../scalation/classes:../../classes scalation.dsl.SimOptDSLTest
  */
 
 package scalation
@@ -225,7 +224,7 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
   
 } // ObjFunc
 
-trait OptimizationDSL 
+trait SimOptDSL 
 {
     /** Implicitly makes all VectorI => Double functions an ObjFunc
      */
@@ -259,9 +258,9 @@ trait OptimizationDSL
         f.optimize (x0) (vMax)
     } // maximize
     
-} // OptimizationDSL
+} // SimOptDSL
 
-object OptimizeTest extends App with OptimizationDSL
+object SimOptDSLTest extends App with SimOptDSL
 {
     def f (x: VectorI) = 2.0 + x(0) + x(1)*x(2) + x(2)
     val x0 = new VectorI (1, 1, 1)
@@ -269,4 +268,4 @@ object OptimizeTest extends App with OptimizationDSL
     val results = min (f _ using new IntegerLocalOptimizer) (x0)
     println(results)
 
-}
+} // SimOptDSLTest
