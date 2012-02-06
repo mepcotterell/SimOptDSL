@@ -99,7 +99,7 @@ class StatVector (dim: Int) extends VectorD (dim)
    /**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     * Compute the autocorrelation for this StatVector
     */
-    def autocor = this (0 until dim-1) cor this (1 until dim)
+    def autocor (l: Int = 1) = this (0 until dim-l) cor this (l until dim)
 
 } // StatVector class
 
