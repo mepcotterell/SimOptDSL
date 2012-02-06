@@ -28,7 +28,7 @@ import scalation.util.Monitor
 trait UCFParams
 {
 
-    val λ = new VectorD ( 4.,  2.,  0.,  0.,  0.)
+    val λ = new VectorD ( 6.,  3.,  0.,  0.,  0.)
     val μ = new VectorD (15.,  10., 3.,  7., 10.)
 
     var (nArrivalsFrontDoor, iArrivalFRV) = (200, Exponential(1./λ(0)))
@@ -220,8 +220,8 @@ object UCFOpt extends App with UCFParams with SimOptDSL
 
     val PENALTY        = 1.E8 
     //val cost           = new VectorD (100., 200., 50.)
-    val prcost         = new VectorD ( 20., 30., 120., 75. , 7.75 )
-    val C              = new VectorD ( 30., 35., 600., 250., 15.)  
+    val prcost         = new VectorD ( 20., 30., 100., 75. , 7.75 )
+    val C              = new VectorD ( 10., 15., 1000., 500., 100.)  
     var ucfm: UCFModel = null
 
     def f (x: VectorI): Double = 
