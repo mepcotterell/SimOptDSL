@@ -96,6 +96,11 @@ class StatVector (dim: Int) extends VectorD (dim)
     */
     def cor (rhs: StatVector) = (this cov rhs) / (this.variance * rhs.variance)
 
+   /**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    * Compute the autocorrelation for this StatVector
+    */
+    def autocor = this (0 until dim-1) cor this (1 until dim)
+
 } // StatVector class
 
 
