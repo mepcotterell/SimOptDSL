@@ -1,4 +1,4 @@
-2//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 /** @author  Michael Cotterell
  *  @version 1.0
  *  @see     LICENSE (MIT style license file).
@@ -13,7 +13,7 @@ import collection.mutable.{ListBuffer, ListMap, HashMap}
 
 import scalation.math.Vectors.{VectorD, VectorI}
 import scalation.math.VectorN
-import scalation.minima.{GeneticAlgorithm, IntegerLocalSearch, IntegerTabuSearch}
+import scalation.maxima.{GeneticAlgorithm, IntegerLocalSearch, IntegerTabuSearch}
 import scalation.stat.StatVector
 
 /** Optimizer
@@ -42,7 +42,7 @@ trait RealOptimizer extends Optimizer [VectorD, Double]
  *  This class is a proxy for Dr. Miller's Integer Local Search
  */
 case class IntegerLocalOptimizer (objf: Option[VectorI => Double] = None) 
-    extends IntegerOptimizer with MinimaOptimization 
+    extends IntegerOptimizer with MaximaOptimization 
 {
     def setObjective [OptType <: Optimizer[VectorI, Double], MinMax] (f: ObjFunc [VectorI, Double, OptType, MinMax]) 
         = new IntegerLocalOptimizer (Some(f))
@@ -58,7 +58,7 @@ case class IntegerLocalOptimizer (objf: Option[VectorI => Double] = None)
  *  This class is a proxy for Dr. Miller's Integer Tabu Search
  */
 case class IntegerTabuOptimizer (objf: Option[VectorI => Double] = None) 
-    extends IntegerOptimizer with MinimaOptimization 
+    extends IntegerOptimizer with MaximaOptimization 
 {
     def setObjective [OptType <: Optimizer[VectorI, Double], MinMax] (f: ObjFunc [VectorI, Double, OptType, MinMax]) 
         = new IntegerTabuOptimizer (Some(f))
@@ -74,7 +74,7 @@ case class IntegerTabuOptimizer (objf: Option[VectorI => Double] = None)
  *  This class is a proxy for Dr. Miller's Integer Tabu Search
  */
 case class GeneticAlgorithmOptimizer (objf: Option[VectorI => Double] = None) 
-    extends IntegerOptimizer with MinimaOptimization 
+    extends IntegerOptimizer with MaximaOptimization 
 {
     def setObjective [OptType <: Optimizer[VectorI, Double], MinMax] (f: ObjFunc [VectorI, Double, OptType, MinMax]) 
         = new GeneticAlgorithmOptimizer (Some(f))
@@ -122,8 +122,8 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
         val corr = 0.1
 
 	// increase the batch size to that it's uncorrelated
-        while (svp.autocorrelation > corr && svp.dim < 400) {
-            println("\t\tdata too correlated (%.4f > %.4f)".format(svp.autocorrelation, corr))
+        /*while (svp.autocorrelation > corr && svp.dim < 400) {
+            //println("\t\tdata too correlated (%.4f > %.4f)".format(svp.autocorrelation, corr))
             b = svp.dim + 1
             println("\t\tincreasing batch initial batch size to %d".format(b))
             println("\t\titers = %d".format(iters))
@@ -133,7 +133,7 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
             sv(svp.dim) = nuo.toDouble(f(x))
             svp = sv
 	} // while
-
+*/
         // set the initial batch mean
         bmp(0) = svp.mean
 
@@ -198,11 +198,11 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
     } // apply
 
     /** Readys the objective function for optimization by setting
-     *  some minima optimizer.
+     *  some maxima optimizer.
      */
-    def using (o: OptType with MinimaOptimization) = 
+    def using (o: OptType with MaximaOptimization) = 
     {
-        new ObjFunc [Input, Output, OptType, MinimaOptimization] (f, Some(o))
+        new ObjFunc [Input, Output, OptType, MaximaOptimization] (f, Some(o))
     } // using
 
 //
@@ -226,6 +226,10 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
 
 trait SimOptDSL 
 {
+    /** Implicitly enable the caching rule
+     */
+    implicit val enableCache = true
+
     /** Implicitly makes all VectorI => Double functions an ObjFunc
      */
     implicit def mkObjFuncI (f: VectorI => Double) 
@@ -236,36 +240,32 @@ trait SimOptDSL
     implicit def mkObjFuncR (f: VectorD => Double) 
         = new ObjFunc [VectorD, Double, RealOptimizer, UnreadyOptimization] (f)
 
-    /** Implicitly enable the caching rule
-     */
-    implicit val enableCache = true
-
     /** Minimizes an objective function with some initial input.
      */
     def min [Input, Output, OptType <: Optimizer[Input, Output]] 
         (f: ObjFunc [Input, Output, OptType, MinimaOptimization]) 
-        (x0: Input, vMax: Double = .5) =
+        (x0: Input, tMax: Double = .2) =
     {
-        f.optimize (x0) (vMax)
+        f.optimize (x0) (tMax)
     } // minimize
 
     /** Maximizes an objective function with some initial input.
      */
     def max [Input, Output, OptType <: Optimizer[Input, Output]] 
         (f: ObjFunc [Input, Output, OptType, MaximaOptimization]) 
-        (x0: Input, vMax: Double = .5) =
+        (x0: Input, tMax: Double = .2) =
     {
-        f.optimize (x0) (vMax)
+        f.optimize (x0) (tMax)
     } // maximize
     
 } // SimOptDSL
 
 object SimOptDSLTest extends App with SimOptDSL
 {
-    def f (x: VectorI) = 2.0 + x(0) + x(1)*x(2) + x(2)
-    val x0 = new VectorI (1, 1, 1)
+    def f (x: VectorI) = -(x(0)-5.)*(x(0)-5.) - x(1)*x(1)
+    val x0 = new VectorI (1, 1)
     
-    val results = min (f _ using new IntegerLocalOptimizer) (x0)
+    val results = max (f _ using new IntegerLocalOptimizer) (x0)
     println(results)
 
 } // SimOptDSLTest
