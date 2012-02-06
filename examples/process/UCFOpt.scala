@@ -28,11 +28,11 @@ import scalation.util.Monitor
 trait UCFParams
 {
 
-    val λ = new VectorD ( 5.,  2.,  0.,  0.,  0.)
+    val λ = new VectorD ( 4.,  2.,  0.,  0.,  0.)
     val μ = new VectorD (15.,  10., 3.,  7., 10.)
 
-    val (nArrivalsFrontDoor, iArrivalFRV) = (500000, Exponential(1./λ(0)))
-    val (nArrivalsAmbulance, iArrivalARV) = (500000, Exponential(1./λ(1)))
+    var (nArrivalsFrontDoor, iArrivalFRV) = (200, Exponential(1./λ(0)))
+    var (nArrivalsAmbulance, iArrivalARV) = (100, Exponential(1./λ(1)))
 
     val μTN = Exponential(1./μ(0))
     val μRN = Exponential(1./μ(1))
@@ -199,7 +199,7 @@ object UCFSim extends App with UCFParams
     //Δ           = Uniform (900, 1100)
     endTime     = 100.
     val x       = new VectorI (1, 1, 1, 1, 1)
-    val ucfm    = new UCFModel (x, true)
+    val ucfm    = new UCFModel (x, false)
     val results = ucfm.simulate (0.)
 } // UCFSim
 
@@ -220,8 +220,8 @@ object UCFOpt extends App with UCFParams with SimOptDSL
 
     val PENALTY        = 1.E8 
     //val cost           = new VectorD (100., 200., 50.)
-    val prcost         = new VectorD ( 20., 35. ,120., 75. , 7.5 )
-    val C              = new VectorD ( 30., 30., 400., 150., 8)  
+    val prcost         = new VectorD ( 20., 30., 120., 75. , 7.75 )
+    val C              = new VectorD ( 30., 35., 600., 250., 15.)  
     var ucfm: UCFModel = null
 
     def f (x: VectorI): Double = 
@@ -229,7 +229,9 @@ object UCFOpt extends App with UCFParams with SimOptDSL
         val (nTN, nRN, nMD, nNP, nAC) = (x(0), x(1), x(2), x(3), x(4))
 
         // Penalty for numbers that don't make sense (i.e., < 1)
-	for (i <- 0 until x.dim) if (x(i) < 1) return PENALTY * (1 - x(i))
+	for (i <- 0 until x.dim) if (x(i) < 1) return -PENALTY * (1 - x(i))
+
+        //for (i <- 0 until x.dim) if (x(i) > 10) return -PENALTY * x(i)
 
         // Impose maximums on certain parts of the input vector
         //if (nTN > 2) return PENALTY * (-2 + nTN)
@@ -244,23 +246,65 @@ object UCFOpt extends App with UCFParams with SimOptDSL
         //val waitTime = results(2).mean + results(4).mean + results(6).mean + results(8).mean + results(10).mean
         val wQ       = new VectorD (results(2).mean, results(4).mean, results(6).mean, results(8).mean, results(10).mean)
         val workers  = new VectorD (nTN, nRN, nMD, nNP, nAC)
+
+	def r (x: VectorI) = 400. * results(8).num + 750. * results(6).num
         
-        val payroll  = ((prcost dot workers) + (C dot wQ)) * ucfm.clock
+        def c (x: VectorI) = ((prcost dot workers) + (C dot wQ)) * ucfm.clock
+
+        def p (x: VectorI) = (r(x) - c(x)) / 24.
 
         println ("---------------------------------------------------------------")
-        println ("simulated an UCF with %2d TN, %2d RN, %2d MD, %2d NP, %2d AC, payroll = %8.2f, clock = %4.3f".format(nTN, nRN, nMD, nNP, nAC, payroll, ucfm.clock))
+        println ("simulated an UCF with %2d TN, %2d RN, %2d MD, %2d NP, %2d AC, r = %8.2f, c = %8.2f, p = %8.2f, clock = %4.3f".format(nTN, nRN, nMD, nNP, nAC, r(x), c(x), p(x), ucfm.clock))
         println ("---------------------------------------------------------------")
 
-        payroll
+        p(x)
     } // f
 
-    //val optimizer = new IntegerLocalOptimizer
-    //val optimizer = new IntegerTabuOptimizer
-    val optimizer = new GeneticAlgorithmOptimizer
     val x0 = new VectorI (5); x0.set (1)
-    //val result = optimizer.solve (x0)
+
+/*
+    /** Method of batch means to determine batch size n and number of batches b
+     */
+    var n       = 5
+    var b       = 5
+
+    val maxCor  = .2
+    val maxCIH  = .2
+    
+    var testResult: ListBuffer [Statistic] = null
+
+    do {
+        n *= 2
+        nArrivalsFrontDoor = ((2. * n * b) / 3.).toInt
+        nArrivalsAmbulance = ((1. * n * b) / 3.).toInt
+        val test           = new UCFModel (x0, false)
+        testResult         = test.simulate (0.)
+    } while (testResult(6).autoCor(b) >= maxCor && testResult(8).autoCor(b) >= maxCor)
+
+    println("optimal batch size is %s".format(n))
+
+    do {
+        b *= 2
+        nArrivalsFrontDoor = ((2. * n * b) / 3.).toInt
+        nArrivalsAmbulance = ((1. * n * b) / 3.).toInt
+        val test           = new UCFModel (x0, false)
+        testResult         = test.simulate (0.)
+    } while (testResult(6).autoCor >= maxCor && testResult(8).autoCor >= maxCor)
+*/
+
+
+    /** Reset the number of arrivals
+     */
+    nArrivalsFrontDoor = 200
+    nArrivalsAmbulance = 100
+
+    val optimizer = new IntegerLocalOptimizer
+    //val optimizer = new IntegerTabuOptimizer
+    //val optimizer = new GeneticAlgorithmOptimizer
+ 
     val objfunc = f _ using optimizer
-    val result = max (objfunc) (x0, .75)
+    val result = max (objfunc) (x0, .1)
+
     println ("###############################################################")
     println ("optimal solution x = " + result)
     println ("###############################################################")
