@@ -13,13 +13,14 @@ import collection.mutable.{ListBuffer, ListMap, HashMap}
 
 import scalation.math.Vectors.{VectorD, VectorI}
 import scalation.math.VectorN
-import scalation.maxima.{GeneticAlgorithm, IntegerLocalSearch, IntegerTabuSearch}
+import scalation.maxima.{ConjGradient, GeneticAlgorithm, IntegerLocalSearch, IntegerTabuSearch}
 import scalation.stat.StatVector
 
 /** Optimizer
  */
 trait Optimizer [Input, Output]
 {
+
     /** Sets the objective function for this optimizer.
      */
     def setObjective [OptType <: Optimizer[Input, Output], MinMax] 

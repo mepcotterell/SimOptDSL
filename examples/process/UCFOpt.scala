@@ -299,8 +299,8 @@ object UCFOpt extends App with UCFParams with SimOptDSL
     nArrivalsAmbulance = 100
 
     //val optimizer = new IntegerLocalOptimizer
-    val optimizer = new IntegerTabuOptimizer
-    //val optimizer = new GeneticAlgorithmOptimizer
+    //val optimizer = new IntegerTabuOptimizer
+    val optimizer = new GeneticAlgorithmOptimizer
  
     val objfunc = f _ using optimizer
     val result = max (objfunc) (x0, .1)
