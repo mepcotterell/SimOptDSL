@@ -100,7 +100,7 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
     var iters     = 0
     var calls     = 0
 
-    def evaluate (x: Input) =
+/*    def evaluate (x: Input) =
     {
 
         // initial batch size
@@ -179,6 +179,7 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
 
         bmp.mean.asInstanceOf[Output]
     } // evaluate
+*/
 
     /** Applies the function. If caching is enabled and the the given input
      *  has already been applied then the cached value is returned.
@@ -190,11 +191,11 @@ class ObjFunc [Input, Output, OptType <: Optimizer[Input, Output], MinMax]
         if (enableCache) cache get (x) match {
 	    case Some (value) => value
             case None         => {
-                val value = evaluate (x)
+                val value = f (x)
                 cache put (x, value)
                 value
 	    }
-        } else evaluate (x)
+        } else f (x)
     } // apply
 
     /** Readys the objective function for optimization by setting
