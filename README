@@ -1,0 +1,12 @@
+SimOptDSL - A Domain-Specific Language for Simulation Optimization
+
+Let's you do something like this:
+
+  import math.pow
+  def (x: VectorI) = -pow(x(0)-5, 2) - pow(x(1)-5, 2) + 5
+
+  val x0 = new VectorI (5); x0.set (1)
+  val optimizer = new GeneticAlgorithmOptimizer
+  val result = max (f _ using optimizer) (x0, .1)
+
+  println (result) // Should be (5, 5) = 5
