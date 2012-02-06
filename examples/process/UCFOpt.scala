@@ -173,7 +173,7 @@ class UCFModel (x: VectorI, animate: Boolean = false) extends Model ("UCFModel",
      *  statistics.
      *  @param startTime the time at which the simulation is to begin
      */
-    override def simulate (startTime: Double = 0.): ListBuffer [Statistic] =
+    /*override def simulate (startTime: Double = 0.): ListBuffer [Statistic] =
     {
         _clock = startTime
         // trace (this, "starts", this, _clock)
@@ -191,7 +191,7 @@ class UCFModel (x: VectorI, animate: Boolean = false) extends Model ("UCFModel",
         report
         getStatistics
     } // simulate (override)
-
+*/
 } // UCFModel class
 
 object UCFSim extends App with UCFParams
@@ -199,7 +199,7 @@ object UCFSim extends App with UCFParams
     //Δ           = Uniform (900, 1100)
     endTime     = 100.
     val x       = new VectorI (1, 1, 1, 1, 1)
-    val ucfm    = new UCFModel (x, false)
+    val ucfm    = new UCFModel (x, true)
     val results = ucfm.simulate (0.)
 } // UCFSim
 
@@ -298,8 +298,8 @@ object UCFOpt extends App with UCFParams with SimOptDSL
     nArrivalsFrontDoor = 200
     nArrivalsAmbulance = 100
 
-    val optimizer = new IntegerLocalOptimizer
-    //val optimizer = new IntegerTabuOptimizer
+    //val optimizer = new IntegerLocalOptimizer
+    val optimizer = new IntegerTabuOptimizer
     //val optimizer = new GeneticAlgorithmOptimizer
  
     val objfunc = f _ using optimizer
