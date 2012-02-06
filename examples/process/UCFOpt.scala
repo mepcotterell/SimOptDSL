@@ -13,10 +13,10 @@ package process
 
 import collection.mutable.{ListBuffer, ListMap, HashMap}
 
+import scalation.dsl._
 import scalation.process._
 import scalation.math.Matrices.MatrixD
 import scalation.math.Vectors.{VectorD, VectorI}
-import scalation.minima.IntegerLocalSearch
 import scalation.queueingnet.JacksonNet
 import scalation.random.{Random, Uniform, Variate, Exponential}
 import scalation.stat.Statistic
@@ -176,14 +176,14 @@ object UCFSim extends App with UCFParams
     endTime     = 100.
     val x       = new VectorI (1, 1, 1, 1, 1)
     val ucfm    = new UCFModel (x, true)
-    val results = ucfm.simulate (0., endTime)
+    val results = ucfm.simulate (0.)
 } // UCFSim
 
 object UCFSim2 extends App with UCFParams
 {
     val x       = new VectorI (args(0).toInt, args(1).toInt, args(2).toInt, args(3).toInt, args(4).toInt)
     val ucfm    = new UCFModel (x)
-    val results = ucfm.simulate (0., endTime)
+    val results = ucfm.simulate (0.)
 } // UCFSim2
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -191,7 +191,7 @@ object UCFSim2 extends App with UCFParams
  *  and a cost function. The only constraints we have on the input vector are
  *  that each element must be positive.
  */
-object UCFOpt extends App with UCFParams with OptimizationDSL
+object UCFOpt extends App with UCFParams with SimOptDSL
 {
 
     val PENALTY        = 1.E8 
@@ -216,7 +216,7 @@ object UCFOpt extends App with UCFParams with OptimizationDSL
 
         ucfm = new UCFModel (x)
 
-        val results  = ucfm.simulate (0., endTime)
+        val results  = ucfm.simulate (0.)
         //val waitTime = results(2).mean + results(4).mean + results(6).mean + results(8).mean + results(10).mean
         val wQ       = new VectorD (results(2).mean, results(4).mean, results(6).mean, results(8).mean, results(10).mean)
         val workers  = new VectorD (nTN, nRN, nMD, nNP, nAC)
@@ -236,7 +236,7 @@ object UCFOpt extends App with UCFParams with OptimizationDSL
     val x0 = new VectorI (5); x0.set (1)
     //val result = optimizer.solve (x0)
     val objfunc = f _ using optimizer
-    val result = min (objfunc) (x0, .75)
+    val result = max (objfunc) (x0, .75)
     println ("###############################################################")
     println ("optimal solution x = " + result)
     println ("###############################################################")
