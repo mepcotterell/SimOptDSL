@@ -168,6 +168,30 @@ class UCFModel (x: VectorI, animate: Boolean = false) extends Model ("UCFModel",
         } // act
     } // WalkInPatient
 
+    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    /** Execute the simulation (includes scheduling all Sources) returning summary
+     *  statistics.
+     *  @param startTime the time at which the simulation is to begin
+     */
+    override def simulate (startTime: Double = 0.): ListBuffer [Statistic] =
+    {
+        _clock = startTime
+        // trace (this, "starts", this, _clock)
+        for (p <- parts) {
+            // trace (this, "establish x = " + p.at(0) + " y = " + p.at(1), p, _clock)
+            p.setDirector (this)
+            if (p.isInstanceOf [Source]) reschedule (p.asInstanceOf [Source]) 
+        } // for
+
+        simulating = true
+        start ()                              // start the director thread/actor
+        val future = this !! RETURN_RESULTS   // results returned in a future reply
+        val results = future ()
+        println ("<<<<<<<<<<<<<<<<<<<<<<< future returned - simulation finished >>>>>>>>>>>>>>>>>>>>>>")
+        report
+        getStatistics
+    } // simulate (override)
+
 } // UCFModel class
 
 object UCFSim extends App with UCFParams
