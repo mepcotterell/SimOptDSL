@@ -1,6 +1,6 @@
 SimOptDSL - A Domain-Specific Language for Simulation Optimization
 
-Let's you do something like this:
+Lets you do something like this:
 
   import math.pow
   def (x: VectorI) = -pow(x(0)-5, 2) - pow(x(1)-5, 2) + 5
@@ -10,3 +10,5 @@ Let's you do something like this:
   val result = max (f _ using optimizer) (x0, .1)
 
   println (result) // Should be (5, 5) = 5
+
+Using the ScalaTion DSL, you can use simulations in your objective function.
